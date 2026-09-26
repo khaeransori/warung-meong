@@ -1,0 +1,30 @@
+{
+  "name": "warung-meong",
+  "version": "1.0.0",
+  "description": "Warung Meong — game masak 3D kotak-kotak untuk anak, jalan offline di HP.",
+  "private": true,
+  "type": "module",
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "node build.mjs && node pwa.mjs",
+    "build:dev": "node build.mjs --dev && node pwa.mjs",
+    "serve": "python3 -m http.server 8080 --directory dist/pwa",
+    "icon": "node tools/icon.mjs",
+    "test:smoke": "node test/smoke.mjs",
+    "test:ui": "node test/ui.mjs",
+    "test:portrait": "node test/portrait.mjs",
+    "test:dayloop": "node test/dayloop.mjs",
+    "test:pwa": "node test/pwa.mjs",
+    "sim": "node test/sim.mjs",
+    "perf": "node test/perf.mjs"
+  },
+  "dependencies": {
+    "@fontsource/fredoka": "^5.3.0",
+    "esbuild": "^0.28.2",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.0",
+    "sharp": "^0.35.4"
+  }
+}

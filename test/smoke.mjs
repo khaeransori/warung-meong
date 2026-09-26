@@ -1,0 +1,34 @@
+import { chromium } from 'playwright';
+import fs from 'fs';
+const out = 'test-shots/smoke';
+const W = +(process.argv[3] || 844), H = +(process.argv[4] || 390);
+fs.mkdirSync(out, { recursive: true });
+const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1, hasTouch: true });
+const errs = [];
+page.on('console', m => { if (m.type() === 'error') errs.push(m.type() + ': ' + m.text()); });
+page.on('pageerror', e => errs.push('PAGEERROR: ' + e.message + '\n' + e.stack));
+await page.goto('file://' + process.cwd() + '/dist/warung-meong.html');
+await page.waitForSelector('#title', { timeout: 60000 });
+const shot = async (n) => { await page.screenshot({ path: `${out}/${n}.png` }); };
+await page.click('#t-play');
+await page.waitForTimeout(1500); await shot('02-intro-a');
+await page.waitForTimeout(1300); await shot('03-intro-open');
+await page.waitForSelector('#charsel', { timeout: 20000 });
+await page.waitForTimeout(1500); await shot('04-charsel');
+await page.click('.gender button.f'); await page.waitForTimeout(300);
+await page.click('.fur .sw[data-f="belang"]'); await page.waitForTimeout(900);
+await shot('05-charsel-f');
+await page.click('.cs-done');
+await page.waitForTimeout(2600); await shot('06-house-play');
+// walk: teleport near stairs top and walk down
+await page.evaluate(() => { const P = __wm.house.player; P.place(-5.2, -3.0, 3, Math.PI); });
+await page.keyboard.down('ArrowDown'); await page.waitForTimeout(1600); await page.keyboard.up('ArrowDown');
+await page.waitForTimeout(400); await shot('07-stairs-down');
+await page.evaluate(() => { const P = __wm.house.player; P.place(-0.2, 1.6, 0, Math.PI); });
+await page.waitForTimeout(600); await shot('08-table');
+await page.keyboard.press('Space'); await page.waitForTimeout(2000); await shot('09-ate');
+console.log(errs.join('\n'));
+await browser.close();
+if (errs.length) { console.error('ERRORS:\n' + errs.join('\n')); process.exit(1); }
+console.log('ok');

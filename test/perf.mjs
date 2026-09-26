@@ -1,0 +1,34 @@
+import { chromium } from 'playwright';
+import fs from 'fs';
+const out = 'test-shots/perf'; fs.mkdirSync(out, { recursive: true });
+const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
+const errs = [];
+page.on('pageerror', e => errs.push('PAGEERROR: ' + e.message + '\n' + e.stack));
+await page.goto('file://' + process.cwd() + '/dist/warung-meong.html');
+await page.waitForSelector('#title', { timeout: 60000 });
+await page.evaluate(() => {
+  const a = __wm; a.save.started = true; a.save.day = 10; a.save.tips = { controls: true, howto: true, dirty: true, vip: true };
+  a.save.upgrades = { sepatu: 1, radio: 1, wajan2: 1, antigosong: 1, tanaman: 1, turbo: 1, meja4: 1, bakar2: 1, kipas: 1, lampu: 1 };
+  a.save.char = { gender: 'f', fur: 'siam', name: 'Mimi', hat: 'bunga', outfit: 'ungu' };
+  a.ui.hideTitle(); a.warung.start(10); a.current = a.warung; a.ui.setHud('warung'); document.body.className = 'sky-warung';
+  a.ui.setStarBar(0, a.warung.cfg.stars); a.warung.begin(); a.warung.bot = true;
+  __sim(40);
+});
+await page.waitForTimeout(600);
+await page.screenshot({ path: out + '/a.png' });
+const info = () => page.evaluate(() => { const r = __wm.renderer.info.render; return `${r.calls} draw calls, ${r.triangles} triangles`; });
+console.log('warung day 10 (all upgrades):', await info());
+await page.evaluate(() => __sim(55));
+await page.waitForTimeout(600);
+await page.screenshot({ path: out + '/b.png' });
+await page.evaluate(() => { const a = __wm; a.warung.exit(); a.house.enterPlay('bed'); a.enterHouseHud(); });
+await page.waitForTimeout(600);
+console.log('house upstairs:', await info());
+await page.evaluate(() => { __wm.house.player.place(0, 1.5, 0, 0); });
+await page.waitForTimeout(600);
+console.log('house downstairs:', await info());
+console.log(errs.join('\n'));
+await browser.close();
+if (errs.length) { console.error('ERRORS:\n' + errs.join('\n')); process.exit(1); }
+console.log('ok');

@@ -1,0 +1,44 @@
+import { chromium } from 'playwright';
+import fs from 'fs';
+const out = 'test-shots/ui';
+const W = +(process.argv[3] || 844), H = +(process.argv[4] || 390);
+fs.mkdirSync(out, { recursive: true });
+const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1, hasTouch: true });
+const errs = [];
+page.on('console', m => { if (m.type() === 'error') errs.push(m.type() + ': ' + m.text()); });
+page.on('pageerror', e => errs.push('PAGEERROR: ' + e.message + '\n' + e.stack));
+await page.goto('file://' + process.cwd() + '/dist/warung-meong.html');
+await page.waitForSelector('#title', { timeout: 60000 });
+const shot = async (n) => { await page.waitForTimeout(500); await page.screenshot({ path: `${out}/${n}.png` }); };
+await page.evaluate(() => {
+  const a = __wm; Object.assign(a.save, { started: true, day: 6, coins: 420, stars: { 1: 3, 2: 2, 3: 1, 4: 3, 5: 2 }, tips: { controls: true, howto: true, dirty: true, vip: true }, seenRecipes: { nasgor: 1, esjeruk: 1, sate: 1, miegor: 1, bakso: 1 } });
+  a.save.upgrades = { sepatu: true, radio: true }; a.save.trophies = { pemula: true, combo5: true, bintang3: true };
+  a.save.hats.push('pita');
+  a.house.refreshTrophies();
+  a.ui.hideTitle(); a.house.enterPlay('bed'); a.enterHouseHud();
+});
+await shot('h1-bedroom');
+await page.evaluate(() => __wm.openDayPicker()); await shot('p1-days');
+await page.evaluate(() => { __wm.ui.closeModal(true); __wm.openShop(); }); await shot('p2-shop');
+await page.evaluate(() => { __wm.ui.closeModal(true); __wm.openWardrobe(); }); await shot('p3-wardrobe');
+await page.evaluate(() => { __wm.ui.closeModal(true); __wm.openRecipeBook(); }); await shot('p4-recipes');
+await page.evaluate(() => { __wm.ui.closeModal(true); __wm.openTrophies(); }); await shot('p5-trophies');
+await page.evaluate(() => { __wm.ui.closeModal(true); document.getElementById('btn-pause').click(); }); await shot('p6-settings');
+await page.evaluate(() => { __wm.ui.closeModal(true); __wm.save.time = 'evening'; __wm.house.enterPlay('door'); __wm.enterHouseHud(); }); await shot('h2-evening-door');
+await page.evaluate(() => { const P = __wm.house.player; P.place(4.6, -0.6, 3, Math.PI); }); await shot('h3-evening-bed');
+await page.evaluate(() => { __wm.ui.recipeIntro('bakso'); }); await shot('p7-intro');
+await page.evaluate(() => { __wm.ui.closeModal(true); __wm.panelsResults ? 0 : 0; });
+await page.evaluate(() => {
+  const a = __wm; a.warung.start(6); a.current = a.warung; a.ui.setHud('warung'); document.body.className = 'sky-warung'; a.warung.begin();
+});
+await page.waitForTimeout(800);
+await shot('w1-signs');
+await page.evaluate(() => { const W = __wm.warung; W.bot = true; __sim(25); });
+await shot('w2-after25');
+await page.evaluate(() => { const W = __wm.warung; __sim(20); });
+await shot('w3-after45');
+console.log(errs.slice(0, 10).join('\n'));
+await browser.close();
+if (errs.length) { console.error('ERRORS:\n' + errs.join('\n')); process.exit(1); }
+console.log('ok');
